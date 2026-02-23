@@ -2,15 +2,30 @@ import os
 import socket
 import threading
 from flask import Flask, send_from_directory, request
+from werkzeug.security import safe_join
 import webbrowser
+import secrets
 
 # ポート
 PORT_PUBLIC = 5000
 PORT_PRIVATE = 5001
 
+# 共有ファイルを保存する専用フォルダ
+UPLOAD_FOLDER = os.path.join(os.getcwd(), 'shared_files')
+
+if not os.path.exists(UPLOAD_FOLDER):
+    os.makedirs(UPLOAD_FOLDER)
+
 # 共有ファイルのパスと名前
 shared_file = {'name': None, 'path': None}
 
+# 状態管理
+state = {
+    'filename': None,
+    'token': secrets.token_hex(16)  # 初期トークン
+}
+
+# 自己IPの取得
 def get_ip():
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     try:
@@ -25,18 +40,32 @@ admin_app = Flask("admin")
 
 @admin_app.route('/', methods=['GET', 'POST'])
 def admin_panel():
+    
     if request.method == 'POST':
+        origin = request.headers.get('Origin')
+        if not origin or origin != f"http://localhost:{PORT_PRIVATE}":
+            print("Invalid Origin:", origin)
+            return "Invalid Origin", 403
+        
+        user_token = request.form.get('token')
+        if not user_token or user_token != state['token']:
+            print("Invalid Token:", user_token)
+            return "Invalid Token", 403
         file = request.files.get('file')
+        
         if file:
-            path = os.path.join(os.getcwd(), file.filename)
+            path = safe_join(UPLOAD_FOLDER, os.fspath(file.filename))
             file.save(path)
             shared_file['name'] = file.filename
             shared_file['path'] = path
+            
+            state['token'] = secrets.token_hex(16)  # トークン更新
     
     return f"""
     <h1>ファイルを送信</h1>
     <p>現在の共有: {shared_file['name'] or 'なし'}</p>
     <form method="POST" enctype="multipart/form-data">
+        <input type="hidden" name="token" value="{state['token']}">
         <input type="file" name="file" onchange="this.form.submit()">
     </form>
     <hr>
@@ -66,7 +95,7 @@ def public_view():
 @public_app.route('/download')
 def download():
     if shared_file['path']:
-        return send_from_directory(os.getcwd(), shared_file['name'], as_attachment=True)
+        return send_from_directory(UPLOAD_FOLDER, shared_file['name'], as_attachment=True)
     return "Not Found", 404
 
 
