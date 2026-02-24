@@ -64,16 +64,45 @@ def admin_panel():
             
             state['token'] = secrets.token_hex(16)  # トークン更新
     
-    return (f"""
+    return (
+    """
+    <style>
+    .box {
+        width: 300px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        padding: 40px;
+        border-radius: 18px;
+        box-shadow: 0 0 10px gray;
+    }
+
+    body {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    </style>
+    """
+
+    f"""
+    <div class="box">
     <h1>ファイルを送信</h1>
-    <p>現在の共有: {shared_file['name'] or 'なし'}</p>
-    <form method="POST" enctype="multipart/form-data">
-        <input type="hidden" name="token" value="{state['token']}">
-        <input type="file" name="file" onchange="this.form.submit()">
-    </form>
+
+    <div>
+        <p>現在の共有: {shared_file['name'] or 'なし'}</p>
+        <form method="POST" enctype="multipart/form-data">
+            <input type="hidden" name="token" value="{state['token']}">
+            <input type="file" name="file" onchange="this.form.submit()">
+        </form>
+    </div>
     <hr>
-    <p>相手に教えるURL: http://{get_ip()}:{PORT_PUBLIC}</p>
-    <div id="qrcode"></div>
+    <div>
+        <p>相手に教えるURL:<br> <a href="http://{get_ip()}:{PORT_PUBLIC}" target="_blank">http://{get_ip()}:{PORT_PUBLIC}</a></p>
+        <div id="qrcode"></div>
+    </div>
+    </div>
     """
     
     # qrcodejs
@@ -710,11 +739,33 @@ def public_view():
     if not shared_file['name']:
         return "<h1>待機中...</h1><p>送信者が準備するまでお待ちください。</p>"
     
-    return f"""
-    <h1>ファイルが届いています</h1>
-    <p>ファイル名: {shared_file['name']}</p>
-    <a href="/download" style="padding:10px; background:green; color:white; text-decoration:none;">ダウンロード</a>
+    return ("""
+    <style>
+    .box {
+        width: 300px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        padding: 40px;
+        border-radius: 18px;
+        box-shadow: 0 0 10px gray;
+    }
+
+    body {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    </style>
     """
+    f"""
+    <div class="box">
+        <h1>ファイルを受信</h1>
+        <p>ファイル名: {shared_file['name']}</p>
+        <a href="/download" style="padding:10px; background:green; color:white; text-decoration:none;">ダウンロード</a>
+    </div>
+    """)
 
 # 送信ページ
 @public_app.route('/download')
