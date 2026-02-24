@@ -5,6 +5,7 @@ from flask import Flask, send_from_directory, request
 from werkzeug.security import safe_join
 import webbrowser
 import secrets
+import shutil
 
 # ポート
 PORT_PUBLIC = 5000
@@ -13,8 +14,9 @@ PORT_PRIVATE = 5001
 # 共有ファイルを保存する専用フォルダ
 UPLOAD_FOLDER = os.path.join(os.getcwd(), 'shared_files')
 
-if not os.path.exists(UPLOAD_FOLDER):
-    os.makedirs(UPLOAD_FOLDER)
+if os.path.exists(UPLOAD_FOLDER):
+    shutil.rmtree(UPLOAD_FOLDER)    
+os.makedirs(UPLOAD_FOLDER)
 
 # 共有ファイルのパスと名前
 shared_file = {'name': None, 'path': None}
@@ -112,3 +114,5 @@ if __name__ == '__main__':
     webbrowser.open(f"http://localhost:{PORT_PRIVATE}")
     
     admin_app.run(host='127.0.0.1', port=PORT_PRIVATE, debug=False)
+
+    shutil.rmtree(UPLOAD_FOLDER)
