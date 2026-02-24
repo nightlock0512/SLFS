@@ -15,9 +15,12 @@ PORT_PRIVATE = 5001
 UPLOAD_FOLDER = os.path.join(os.getcwd(), 'shared_files')
 
 # 共有フォルアーを初期化
-if os.path.exists(UPLOAD_FOLDER):
-    shutil.rmtree(UPLOAD_FOLDER)    
-os.makedirs(UPLOAD_FOLDER)
+def init_sharedir():
+    if os.path.exists(UPLOAD_FOLDER):
+        shutil.rmtree(UPLOAD_FOLDER)    
+    os.makedirs(UPLOAD_FOLDER)
+
+init_sharedir()
 
 # 共有ファイルのパスと名前
 shared_file = {'name': None, 'path': None}
@@ -57,6 +60,8 @@ def admin_panel():
         file = request.files.get('file')
         
         if file:
+            init_sharedir()
+
             path = safe_join(UPLOAD_FOLDER, os.fspath(file.filename))
             file.save(path)
             shared_file['name'] = file.filename
