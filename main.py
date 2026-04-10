@@ -62,6 +62,8 @@ def admin_panel():
             state['token'] = secrets.token_hex(16)  # トークン更新
     
     return f"""
+    <title>SLFS | ファイル送信</title>
+
     <h1>ファイルを送信</h1>
     <p>現在の共有: {shared_file['name'] or 'なし'}</p>
     <form method="POST" enctype="multipart/form-data">
@@ -73,7 +75,7 @@ def admin_panel():
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <div id="qrcode"></div>
     <script>
-    new QRCode(document.getElementById("qrcode"), "http://{get_ip()}:{PORT_PUBLIC}");
+        new QRCode(document.getElementById("qrcode"), "http://{get_ip()}:{PORT_PUBLIC}");
     </script>
     """
 
@@ -83,9 +85,13 @@ public_app = Flask("public")
 @public_app.route('/')
 def public_view():
     if not shared_file['name']:
-        return "<h1>待機中...</h1><p>送信者が準備するまでお待ちください。</p>"
+        return f"""
+        <title>SLFS | ファイル受信</title>
+        <h1>待機中...</h1><p>送信者が準備するまでお待ちください。</p>
+        """
     
     return f"""
+    <title>SLFS | ファイル受信</title>
     <h1>ファイルが届いています</h1>
     <p>ファイル名: {shared_file['name']}</p>
     <a href="/download" style="padding:10px; background:green; color:white; text-decoration:none;">ダウンロード</a>
